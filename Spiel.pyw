@@ -27,7 +27,7 @@ def start_window(): # Startfenster mit Schwierigkeits Auswahl
         spiel_window(2)
 
     tkFenster = Tk() # Start fenster
-    tkFenster.title("Stecker raten - Start")
+    tkFenster.title("Stecker raten")
     tkFenster.geometry("300x280")
     tkFenster.resizable(False, False)
 
@@ -39,7 +39,7 @@ def start_window(): # Startfenster mit Schwierigkeits Auswahl
     labelWillkommen.place(x=50, y=40, width=200, height=30)
 
     labelWähle = Label(master=frameSpiel, text = "wähle einen Schwierigkeitsgrad", font=("Arial", 10), background="white")
-    labelWähle.place(x=40, y=90, width=200, height=30)
+    labelWähle.place(x=20, y=90, width=240, height=30)
 
     # Knopf Leicht
     buttonLeicht = Button(master=frameSpiel, text="Leicht", command=start_leicht)
@@ -63,11 +63,14 @@ def spiel_window(difficulty): # Hauptfenster
 
     score = 0 # Punktestand
     timer = 0
+    difficulty_text = ""
     
     if difficulty == 1: # Timer an Schwierigkeitsgrad anpassen
         timer = 30
+        difficulty_text = "Leicht"
     elif difficulty == 2:
         timer = 45
+        difficulty_text = "Schwer"
     
     if difficulty == 1:
         folder_path = leicht_folder_path
@@ -135,7 +138,7 @@ def spiel_window(difficulty): # Hauptfenster
             answer_buttons[idx].config(text=button_text, command=lambda ans=option: check_antwort(ans))
 
     tkFenster = Tk() # Haupt Fenster
-    tkFenster.title("Stecker raten - Spiel")
+    tkFenster.title(f"Stecker raten - {difficulty_text}")
     tkFenster.geometry("510x765")
     tkFenster.resizable(False, False)
 
