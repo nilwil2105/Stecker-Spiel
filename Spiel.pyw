@@ -5,13 +5,34 @@
 from tkinter import *
 import random
 import os
+import json
 
-highscore = 0
+saved_highscore_hard = 0
+saved_highscore_easy = 0
 
 base_path = os.path.dirname(os.path.abspath(__file__)) # Pfade relativ zu dieser Python Datei
 
 leicht_folder_path = os.path.join(base_path, "leicht") # Pfad leichte Bilder
 schwer_folder_path = os.path.join(base_path, "schwer") # Pfad schwere Bilder
+highscores_path = os.path.join(base_path, "highscores.json")
+
+def load_highscores():
+    global saved_highscore_easy
+    global saved_highscore_hard
+
+    # read JSON file and parse contents
+    with open(highscores_path, 'r') as file:
+        highscores_json = json.load(file)
+    print(highscores_json)
+
+    saved_highscore_easy = highscores_json.get('easy', 0)
+    saved_highscore_hard = highscores_json.get('hard', 0)
+    print("easy highscore: ", saved_highscore_easy, "hard highscore: ", saved_highscore_hard)
+
+def save_highscores():
+    highscores_obj = {'easy': saved_highscore_easy, 'hard': saved_highscore_hard}
+    with open(highscores_path, 'w') as file:
+        json.dump(highscores_obj, file)
 
 def start_window(): # Startfenster mit Schwierigkeits Auswahl
 
@@ -38,7 +59,7 @@ def start_window(): # Startfenster mit Schwierigkeits Auswahl
     labelWillkommen = Label(master=frameSpiel, text = "Willkommen", font=("Arial", 14, "bold"), background="white")
     labelWillkommen.place(x=50, y=40, width=200, height=30)
 
-    labelWähle = Label(master=frameSpiel, text = "wähle einen Schwierigkeitsgrad", font=("Arial", 10), background="white")
+    labelWähle = Label(master=frameSpiel, text = "Wähle einen Schwierigkeitsgrad", font=("Arial", 10), background="white")
     labelWähle.place(x=20, y=90, width=240, height=30)
 
     # Knopf Leicht
@@ -68,9 +89,11 @@ def spiel_window(difficulty): # Hauptfenster
     if difficulty == 1: # Timer an Schwierigkeitsgrad anpassen
         timer = 30
         difficulty_text = "Leicht"
+        highscore_local = saved_highscore_easy
     elif difficulty == 2:
         timer = 45
         difficulty_text = "Schwer"
+        highscore_local = saved_highscore_hard
     
     if difficulty == 1:
         folder_path = leicht_folder_path
@@ -98,7 +121,7 @@ def spiel_window(difficulty): # Hauptfenster
                 tkFenster.after(1000, update_timer)
             else:
                 tkFenster.destroy()
-                ende_window(score)
+                ende_window(score, difficulty, highscore_local)
 
     def check_antwort(answer):
         nonlocal score, gif_files, gif_path, correct_answer, gif_image, timer, folder_path
@@ -108,7 +131,7 @@ def spiel_window(difficulty): # Hauptfenster
             labelScore.config(text=f"{score}")
         else:
             tkFenster.destroy()
-            ende_window(score)
+            ende_window(score, difficulty, highscore_local)
             return
         
         try: # Neues Bild und Antwortmöglichkeiten
@@ -154,13 +177,13 @@ def spiel_window(difficulty): # Hauptfenster
     
     # Timer
     labelTimer = Label(master=frameSpiel, text =f"Zeit: {timer}s", background="orange")
-    labelTimer.place(x=220, y=20, width=50, height=30)
+    labelTimer.place(x=210, y=20, width=70, height=30)
     
     # Highscore Text
     labelHighText = Label(master=frameSpiel, text = "Highscore:", background="orange")
-    labelHighText.place(x=360, y=20, width=60, height=30)
+    labelHighText.place(x=350, y=20, width=70, height=30)
     # Highscore Anzeige
-    labelHigh = Label(master=frameSpiel, text = highscore, background="orange")
+    labelHigh = Label(master=frameSpiel, text = highscore_local, background="orange")
     labelHigh.place(x=420, y=20, width=30, height=30)
 
     gif_files = load_gif(folder_path)
@@ -208,12 +231,21 @@ def spiel_window(difficulty): # Hauptfenster
     update_timer() # Timer starten
     tkFenster.mainloop()
 
-def ende_window(score):
+def ende_window(score, difficulty, highscore_local):
 
-    global highscore
+    global saved_highscore_easy
+    global saved_highscore_hard
 
-    if score > highscore:
-        highscore = score
+    if difficulty == 1:
+        if score > saved_highscore_easy:
+            saved_highscore_easy = score
+            highscore_local = score
+    elif difficulty == 2:
+        if score > saved_highscore_hard:
+            saved_highscore_hard = score
+            highscore_local = score
+    
+    save_highscores()
 
     def start():
         tkFenster.destroy()
@@ -246,7 +278,7 @@ def ende_window(score):
     labelPunkteText = Label(master=frameSpiel, text = "Highscore:", background="white")
     labelPunkteText.place(x=95, y=100, width=60, height=30)
     # Highscore Anzeige
-    labelPunkte = Label(master=frameSpiel, text = highscore,
+    labelPunkte = Label(master=frameSpiel, text = highscore_local,
                         background="white")
     labelPunkte.place(x=155, y=100, width=30, height=30)
 
@@ -299,5 +331,6 @@ def hilfe_window():
     buttonSchließen.place(x=355, y=280, width=140, height=30)
 
     tkFenster.mainloop()
-    
+
+load_highscores() 
 start_window()
